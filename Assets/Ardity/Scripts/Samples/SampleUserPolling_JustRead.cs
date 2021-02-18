@@ -37,5 +37,7 @@ public class SampleUserPolling_JustRead : MonoBehaviour
             Debug.Log("Connection attempt failed or disconnection detected");
         else
             Debug.Log("Message arrived: " + message);
+
+        //Debug.Log(splitArray[0]);
     }
 }
