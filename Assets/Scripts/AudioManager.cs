@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AudioManager : MonoBehaviour
 {
     public Sounds[] sounds;
+    private Slider volumeSlider;
 
     public static AudioManager instance;
     private void Awake()
@@ -20,6 +22,11 @@ public class AudioManager : MonoBehaviour
 
         DontDestroyOnLoad(gameObject);
 
+        if (GameObject.Find("Volume Slider"))
+        {
+            volumeSlider = GameObject.Find("Volume Slider").GetComponent<Slider>();            
+        }
+
         foreach (Sounds s in sounds)
         {
             s.source = gameObject.AddComponent<AudioSource>();
@@ -34,7 +41,7 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        Play("Theme");
+        Play("Theme");     
     }
 
     public void Play(string name)
@@ -47,5 +54,10 @@ public class AudioManager : MonoBehaviour
     {
         Sounds s = System.Array.Find(sounds, sound => sound.name == name);
         s.source.Stop();
+    }
+
+    public void SetVolume(float myVolume)
+    {
+        Sounds s = System.Array.Find(sounds, sound => sound.volume == myVolume);
     }
 }

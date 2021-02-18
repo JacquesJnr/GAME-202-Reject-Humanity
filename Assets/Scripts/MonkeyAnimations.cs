@@ -5,23 +5,24 @@ using UnityEngine.UI;
 
 public class MonkeyAnimations : MonoBehaviour
 {
-    public RectTransform monke1, monke2;
+    private RectTransform rectTransform; // The rectTransform of the animated object
+
     public AnimationCurve curve;
     public float duration;
     public float delay;
+    public float rotateAmount = 15f;
     public LeanTweenType easeType;
 
-    private void Start()
+    private void Awake()
     {
-
+        rectTransform = GetComponent<RectTransform>();
     }
 
     private void OnEnable()
     {
         if(easeType == LeanTweenType.animationCurve)
         {
-            LeanTween.rotate(monke1, 15.0f, duration).setDelay(delay).setLoopPingPong().setEase(curve);
-            LeanTween.rotate(monke2, 15.0f, duration).setDelay(delay).setLoopPingPong().setEase(curve);
+            LeanTween.rotate(rectTransform, rotateAmount, duration).setDelay(delay).setLoopPingPong().setEase(curve);
         }
     }
 }

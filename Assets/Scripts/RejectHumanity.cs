@@ -10,12 +10,14 @@ public class RejectHumanity : MonoBehaviour
     [SerializeField] private bool debugText;
     [SerializeField] private float fillRate = 0.02f;
 
+    private bool isConnected;
     private string recievedString;
     public string[] charArray;
 
-    private TMPro.TextMeshProUGUI micState;
-    private TMPro.TextMeshProUGUI piezoState;
-    private TMPro.TextMeshProUGUI touchState;
+    [SerializeField] private TMPro.TextMeshProUGUI micState;
+    [SerializeField] private TMPro.TextMeshProUGUI piezoState;
+    [SerializeField] private TMPro.TextMeshProUGUI touchState;
+    [SerializeField] private TMPro.TextMeshProUGUI arduinoStatus;
 
     private Slider sliderBar;
     private string piezoString = "Piezo Value: ";
@@ -24,25 +26,20 @@ public class RejectHumanity : MonoBehaviour
     private string active = "Active";
     private string inactive = "Inactive";
 
+    private string colorStringRed = "<color=red> ";
+    private string colorStringYellow = "<color=yellow> ";
+    private string colorStringGreen = "<color=green> ";
+
+    [SerializeField] private int multiplier = 0;
+
     private float monkeyLevel;
-    private float drainRate = 0.001f;
+    private float drainRate = 0.0008f;
     
 
     void Start()
     {
         serialController = GameObject.Find("SerialController").GetComponent<SerialController>();
-        sliderBar = GameObject.Find("Slider").GetComponent<Slider>();
-
-        micState = GameObject.Find("Mic State").GetComponent<TMPro.TextMeshProUGUI>();
-        piezoState = GameObject.Find("Piezo State").GetComponent<TMPro.TextMeshProUGUI>();
-        touchState = GameObject.Find("Touch State").GetComponent<TMPro.TextMeshProUGUI>();
-
-        if (!debugText)
-        {
-            micState.gameObject.SetActive(false);
-            piezoState.gameObject.SetActive(false);
-            touchState.gameObject.SetActive(false);
-        }
+        sliderBar = GameObject.Find("Monkey Meter").GetComponent<Slider>();
     }
     
     void Update()
@@ -59,24 +56,76 @@ public class RejectHumanity : MonoBehaviour
             Debug.Log("Connection established");
 
         charArray = recievedString.Split(',');
-        
+
+        if(charArray.Length == 1)
+        {
+            if (charArray[0] == "_Connected_")
+            {
+               arduinoStatus.text = (colorStringYellow + "Connected");
+            }
+            else if(charArray[0].Contains("Mic Average: "))
+            {
+                arduinoStatus.text = (colorStringYellow + "Calibrating");
+            }
+            else if(charArray[0] == "_Disconnected_")
+            {
+                arduinoStatus.text = (colorStringRed + "Disconnected");
+            }
+        }
+
         // Check we're not calibrating and we're recieving the comma separated values
-       if(charArray.Length == 3)
-       {
+        if (charArray.Length == 3)
+        {
+            arduinoStatus.text = (colorStringGreen + "Ready");
             if (debugText)
             {
                 DebugText();
             }
-       }
+            else
+            {
+                micState.gameObject.SetActive(false);
+                piezoState.gameObject.SetActive(false);
+                touchState.gameObject.SetActive(false);
+            }
+
+            for (int i = 0; i < charArray.Length; i++)
+            {
+                if (charArray[i].Contains("1"))
+                {
+                    multiplier = 0;
+                }
+            }
+
+            for (int i = 0; i < charArray.Length; i++)
+            {
+                if (charArray[i] == "1")
+                {
+                    multiplier++;
+                } else {
+                    multiplier = 0;
+                }
+            }
+            HandleInput();
+        }       
     }
 
     // Checks if the mic state is active and adjust the fill rate of the humanity bar
-    void HandleMicInput()
+    void HandleInput()
     {
         if(charArray[0] != "0")
         {
-           
+            sliderBar.value += fillRate * multiplier;
         }
+
+        if (charArray[1] != "0")
+        {
+            sliderBar.value += 0.2f * multiplier;
+        }
+
+        if (charArray[2] != "0")
+        {
+            sliderBar.value += fillRate * multiplier;
+        }        
 
     }
 
@@ -90,18 +139,18 @@ public class RejectHumanity : MonoBehaviour
 
         // Set the text color and string
         if (charArray[0] == "1")
-            micState.text = micString + "<color=green> " + active;
+            micState.text = micString + colorStringGreen + active;
         else
-            micState.text = micString + "<color=red> " + inactive;
+            micState.text = micString + colorStringRed + inactive;
 
         if (charArray[1] == "1")
-            piezoState.text = piezoString + "<color=green> " + active;
+            piezoState.text = piezoString + colorStringGreen + active;
         else
-            piezoState.text = piezoString + "<color=red> " + inactive;
+            piezoState.text = piezoString + colorStringRed + inactive;
 
         if (charArray[2] == "1")
-            touchState.text = touchString + "<color=green> " + active;
+            touchState.text = touchString + colorStringGreen + active;
         else
-            touchState.text = touchString + "<color=red> " + inactive;
+            touchState.text = touchString + colorStringRed + inactive;
     }
 }
