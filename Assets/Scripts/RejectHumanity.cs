@@ -6,11 +6,10 @@ using TMPro;
 
 public class RejectHumanity : MonoBehaviour
 {
-    public SerialController serialController;   
+    public SerialController serialController;   // The prefab in the scene recieving signals from com ports
     [SerializeField] private bool debugText;
     [SerializeField] private float fillRate = 0.02f;
 
-    private bool isConnected;
     private string recievedString;
     public string[] charArray;
 
@@ -33,7 +32,7 @@ public class RejectHumanity : MonoBehaviour
     [SerializeField] private int multiplier = 0;
 
     private float monkeyLevel;
-    private float drainRate = 0.0008f;
+    private float drainRate = 0.0005f;
     
 
     void Start()
@@ -44,6 +43,7 @@ public class RejectHumanity : MonoBehaviour
     
     void Update()
     {
+        // Constantly drains the monkey meter
         monkeyLevel = sliderBar.value;
         sliderBar.value -= drainRate;
 
@@ -57,9 +57,10 @@ public class RejectHumanity : MonoBehaviour
 
         charArray = recievedString.Split(',');
 
+        // Checks the status of the arduino i.e. if it's calibrating, connected to disconected
         if(charArray.Length == 1)
         {
-            if (charArray[0] == "_Connected_")
+            if (charArray[0] == "__Connected__")
             {
                arduinoStatus.text = (colorStringYellow + "Connected");
             }
@@ -67,7 +68,11 @@ public class RejectHumanity : MonoBehaviour
             {
                 arduinoStatus.text = (colorStringYellow + "Calibrating");
             }
-            else if(charArray[0] == "_Disconnected_")
+            else if(charArray[0] == "__Disconnected__")
+            {
+                arduinoStatus.text = (colorStringRed + "Disconnected");
+            }
+            else if (charArray[0] == "")
             {
                 arduinoStatus.text = (colorStringRed + "Disconnected");
             }
@@ -114,15 +119,15 @@ public class RejectHumanity : MonoBehaviour
     {
         if(charArray[0] != "0")
         {
-            sliderBar.value += fillRate * multiplier;
+            sliderBar.value += (fillRate * 1.5f) * multiplier;
         }
 
-        if (charArray[1] != "0")
+        else if (charArray[1] != "0")
         {
-            sliderBar.value += 0.2f * multiplier;
+            sliderBar.value += (fillRate * 1.5f) * multiplier;
         }
 
-        if (charArray[2] != "0")
+        else if (charArray[2] != "0")
         {
             sliderBar.value += fillRate * multiplier;
         }        
