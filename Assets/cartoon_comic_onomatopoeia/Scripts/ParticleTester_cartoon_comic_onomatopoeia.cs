@@ -2,6 +2,7 @@
 //	https://www.assetstore.unity3d.com/en/#!/content/3045
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -10,7 +11,7 @@ public class ParticleTester_cartoon_comic_onomatopoeia : MonoBehaviour {
 	private Vector2 scrollPosition;
 	
 	void Awake () {
-		particleSystems = Resources.LoadAll(Application.loadedLevelName+"/effects", typeof(GameObject));
+		particleSystems = Resources.LoadAll(SceneManager.GetActiveScene().name+"/effects", typeof(GameObject));
 	}
 	
 	void OnGUI () {
