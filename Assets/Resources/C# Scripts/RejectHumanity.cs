@@ -26,10 +26,11 @@ public class RejectHumanity : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI touchState;
     [SerializeField] private TMPro.TextMeshProUGUI arduinoStatus;
     [SerializeField] private GameObject bangFX;
+    [SerializeField] private GameObject whamFX;
 
 
     private Image fillMask;
-    private GameObject bangZone;
+    private GameObject comicFX;
     public float minValue = 0;
 
     const int micOn = 1;
@@ -61,7 +62,7 @@ public class RejectHumanity : MonoBehaviour
     {
         serialController = GameObject.Find("SerialController").GetComponent<SerialController>();
         //fillMask = GameObject.Find("Fill").GetComponent<Image>();
-        bangZone = GameObject.Find("Bang Zone");
+        comicFX = GameObject.Find("Bang Zone");
     }
 
 
@@ -140,8 +141,16 @@ public class RejectHumanity : MonoBehaviour
 
     void HandlePiezo()
     {
-        float hitStrenth = float.Parse(charArray[piezoIndex]);
-        meterValue += hitStrenth / 10000;
+        float hitStrength = float.Parse(charArray[piezoIndex]);      
+
+        Vector3 leftArea = new Vector3(-5f, Random.Range(-2f, -2.2f), 0);
+        Vector3 rightArea = new Vector3(5f, Random.Range(-2f, -2.2f), 0);
+
+        if (hitStrength != 0)
+        {
+            meterValue += hitStrength / 10000;
+            GameObject leftBang = Instantiate(whamFX, leftArea, Quaternion.identity, comicFX.transform);
+        }
     }
 
     // Code used to test functionality of the touch sensors
@@ -152,8 +161,8 @@ public class RejectHumanity : MonoBehaviour
         {
             // Instantiate "Bang" effect at a random height on the either the left or right side of the screen.
 
-            Vector3 leftArea = new Vector3(-4f, Random.Range(-1.2f, 2.2f), 0);
-            Vector3 rightArea = new Vector3(4f, Random.Range(-1.2f, 2.2f), 0);
+            Vector3 leftArea = new Vector3(-5f, Random.Range(3.5f, 3.8f), 0);
+            Vector3 rightArea = new Vector3(5f, Random.Range(3.5f, 3.8f), 0);
             
 
             // Left Sensor - Instantiate the particle effect on the left side of the screen
@@ -162,7 +171,7 @@ public class RejectHumanity : MonoBehaviour
                 if (!left && meterValue < 1)
                 {
                     meterValue += touchFill;
-                    GameObject leftBang = Instantiate(bangFX, leftArea, Quaternion.identity, bangZone.transform) as GameObject;
+                    GameObject leftBang = Instantiate(bangFX, leftArea, Quaternion.identity, comicFX.transform);
                     particles.Add(leftBang);
                 }                
                 
@@ -177,7 +186,7 @@ public class RejectHumanity : MonoBehaviour
                 if (!right && meterValue < 1)
                 {
                     meterValue += touchFill;
-                    GameObject rightBang = Instantiate(bangFX, rightArea, Quaternion.identity, bangZone.transform);
+                    GameObject rightBang = Instantiate(bangFX, rightArea, Quaternion.identity, comicFX.transform);
                     particles.Add(rightBang);
                 }               
                 
