@@ -10,6 +10,8 @@ public class RejectHumanity : MonoBehaviour
     [Range(0f, 1f)] public float meterValue;
     [SerializeField] private bool debugText;
     [SerializeField] private bool debugTouch;
+    [SerializeField] private bool debugMic;
+    [SerializeField] private bool debugPiezo;
     [SerializeField] private float touchFill = 0.02f;
     [SerializeField] private float drainRate = 0.0002f;
     [SerializeField] private List<GameObject> particles;
@@ -29,6 +31,13 @@ public class RejectHumanity : MonoBehaviour
     private Image fillMask;
     private GameObject bangZone;
     public float minValue = 0;
+
+    const int micOn = 1;
+    const int micIndex = 2;
+    const int piezoIndex = 4;
+    const int sideIndex = 5;
+    const int bangIndex = 6;
+
     private string piezoString = "Piezo Value: ";
     private string micString = "Mic Value: ";
     private string touchString = "Touch Value: ";
@@ -79,10 +88,22 @@ public class RejectHumanity : MonoBehaviour
         }
 
         // Check we're not calibrating and we're recieving the comma separated values
-        if (charArray.Length == 3)
+        if (charArray.Length == 7)
         {
-            //MonkeyMeter();
-            HandleInput();
+            arduinoStatus.text = (colorStringGreen + "Ready");
+
+            switch (barPhase)
+            {
+                case Phases.Bang:
+                    HandleTouch();
+                    break;
+                case Phases.Scream:
+                    HandleMic();
+                    break;
+                case Phases.Stomp:
+                    HandlePiezo();
+                    break;
+            }            
         }
         
         if(debugTouch && charArray.Length == 2)
@@ -90,15 +111,44 @@ public class RejectHumanity : MonoBehaviour
             arduinoStatus.text = (colorStringGreen + "Touch Test");
             HandleTouch();    
         }
+
+        if (debugMic)
+        {
+            HandleMic();
+        }
+
+        if (debugPiezo)
+        {
+            HandlePiezo();
+        }
        
         ManageBangParticles();
+    }
+
+
+    void HandleMic()
+    {
+        // Check mic is above threshold
+        if(charArray[micOn] == "1")
+        {
+            // Convert char array string to a float
+            float volume = float.Parse(charArray[micIndex]);
+
+            meterValue += volume * 2.5f;
+        }       
+    }
+
+    void HandlePiezo()
+    {
+        float hitStrenth = float.Parse(charArray[piezoIndex]);
+        meterValue += hitStrenth / 10000;
     }
 
     // Code used to test functionality of the touch sensors
     void HandleTouch()
     {
         // Check a sensor is active from serial communication
-        if (charArray[1] == "1")
+        if (charArray[bangIndex] == "1")
         {
             // Instantiate "Bang" effect at a random height on the either the left or right side of the screen.
 
@@ -107,7 +157,7 @@ public class RejectHumanity : MonoBehaviour
             
 
             // Left Sensor - Instantiate the particle effect on the left side of the screen
-            if (charArray[0] == "L")
+            if (charArray[sideIndex] == "L")
             {
                 if (!left && meterValue < 1)
                 {
@@ -122,7 +172,7 @@ public class RejectHumanity : MonoBehaviour
                 left = false;
 
             // Right Sensor- Instantiate the particle effect on the right side of the screen
-            if (charArray[0] == "R")
+            if (charArray[sideIndex] == "R")
             {
                 if (!right && meterValue < 1)
                 {
@@ -153,7 +203,7 @@ public class RejectHumanity : MonoBehaviour
                 ScreamPhase();
             }
 
-            if(meterValue > 0.666f)
+            if (meterValue > 0.666f)
             {
                 StompPhase();
             }
@@ -163,7 +213,9 @@ public class RejectHumanity : MonoBehaviour
             {
                 meterValue -= drainRate * Time.deltaTime;
             }
-        }        
+        }
+        else
+            BangPhase();    
     }
 
     float BangPhase()
@@ -235,8 +287,7 @@ public class RejectHumanity : MonoBehaviour
         else if (charArray[2] != "0")
         {
            // sliderBar.value += fillRate * multiplier;
-        }        
-
+        } 
     }
 
     // Changes the color and string of the debug text if the relative sensor is sending input.
@@ -264,39 +315,3 @@ public class RejectHumanity : MonoBehaviour
             touchState.text = touchString + colorStringRed + inactive;
     }
 }
-
-
-//void MonkeyMeter() 
-//{
-//    arduinoStatus.text = (colorStringGreen + "Ready");
-//    if (debugText)
-//    {
-//        DebugText();
-//    }
-//    else
-//    {
-//        micState.gameObject.SetActive(false);
-//        piezoState.gameObject.SetActive(false);
-//        touchState.gameObject.SetActive(false);
-//    }
-
-//    for (int i = 0; i < charArray.Length; i++)
-//    {
-//        if (charArray[i].Contains("1"))
-//        {
-//            multiplier = 0;
-//        }
-//    }
-
-//    for (int i = 0; i < charArray.Length; i++)
-//    {
-//        if (charArray[i] == "1")
-//        {
-//            multiplier++;
-//        }
-//        else
-//        {
-//            multiplier = 0;
-//        }
-//    }
-//}
