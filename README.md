@@ -1,6 +1,6 @@
 # GAME-202-Reject-Humanity
- Return to monke
-## 2. Reject Humanity - Return to monkey
+
+## Reject Humanity - Return to monkey
 
 [![Image from Gyazo](https://i.gyazo.com/dc2d0b3fa865e40814204319e5380cd7.png)](https://gyazo.com/dc2d0b3fa865e40814204319e5380cd7)
 
