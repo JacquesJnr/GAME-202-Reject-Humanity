@@ -17,15 +17,9 @@ public class AudioManager : MonoBehaviour
         {
             Destroy(gameObject);
             return;
-        }
-            
+        }          
 
         DontDestroyOnLoad(gameObject);
-
-        if (GameObject.Find("Volume Slider"))
-        {
-            volumeSlider = GameObject.Find("Volume Slider").GetComponent<Slider>();            
-        }
 
         foreach (Sounds s in sounds)
         {

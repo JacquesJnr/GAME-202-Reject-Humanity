@@ -5,24 +5,18 @@ using UnityEngine.UI;
 
 public class MonkeyAnimations : MonoBehaviour
 {
-    private RectTransform rectTransform; // The rectTransform of the animated object
-
-    public AnimationCurve curve;
-    public float duration;
-    public float delay;
-    public float rotateAmount = 15f;
-    public LeanTweenType easeType;
-
-    private void Awake()
-    {
-        rectTransform = GetComponent<RectTransform>();
-    }
+    public RectTransform rectTransform; // The rectTransform of the animated object
+    public GameObject fillPrefab;
+    public float ScrollX  = 0.5f;
+    public float ScrollY  = 0.5f;
 
     private void OnEnable()
     {
-        if(easeType == LeanTweenType.animationCurve)
-        {
-            LeanTween.rotate(rectTransform, rotateAmount, duration).setDelay(delay).setLoopPingPong().setEase(curve);
-        }
+        float offsetX = Time.time * ScrollX;
+        float offsetY = Time.time * ScrollY;
+        //LeanTween.move(rectTransform, Vector3())
+
+        LeanTween.move(rectTransform, new Vector3(1200.0f, 0, 0), 2f).setDelay(0.5f);
     }
+
 }

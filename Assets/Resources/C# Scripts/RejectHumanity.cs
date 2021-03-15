@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class RejectHumanity : MonoBehaviour
 {
     private SerialController serialController;   // The prefab in the scene recieving signals from com ports
+    private AudioManager audioManager;
     [Range(0f, 1f)] public float meterValue;
-    [SerializeField] private bool debugText;
     [SerializeField] private bool debugTouch;
     [SerializeField] private bool debugMic;
     [SerializeField] private bool debugPiezo;
@@ -21,13 +22,12 @@ public class RejectHumanity : MonoBehaviour
     public bool left;
     public bool right;
 
-    [SerializeField] private TMPro.TextMeshProUGUI micState;
-    [SerializeField] private TMPro.TextMeshProUGUI piezoState;
-    [SerializeField] private TMPro.TextMeshProUGUI touchState;
     [SerializeField] private TMPro.TextMeshProUGUI arduinoStatus;
     [SerializeField] private GameObject bangFX;
     [SerializeField] private GameObject whamFX;
 
+    public GameObject phase1, phase2, phase3;
+    public Texture step1, step2, step3;
 
     private Image fillMask;
     private GameObject comicFX;
@@ -39,30 +39,26 @@ public class RejectHumanity : MonoBehaviour
     const int sideIndex = 5;
     const int bangIndex = 6;
 
-    private string piezoString = "Piezo Value: ";
-    private string micString = "Mic Value: ";
-    private string touchString = "Touch Value: ";
-    private string active = "Active";
-    private string inactive = "Inactive";
-
     private string colorStringRed = "<color=red> ";
     private string colorStringYellow = "<color=yellow> ";
     private string colorStringGreen = "<color=green> ";
 
     // The phases of becoming a monkey
-    private enum Phases
+    public enum Phases
     {
         Bang,
         Scream,
-        Stomp
+        Stomp,
+        Complete
     };
-    [SerializeField] private Phases barPhase;    
+    public Phases barPhase;
 
     void Start()
     {
         serialController = GameObject.Find("SerialController").GetComponent<SerialController>();
         //fillMask = GameObject.Find("Fill").GetComponent<Image>();
         comicFX = GameObject.Find("Bang Zone");
+        audioManager = FindObjectOfType<AudioManager>();
     }
 
 
@@ -83,7 +79,7 @@ public class RejectHumanity : MonoBehaviour
 
 
         // Checks the status of the arduino i.e. if it's calibrating, connected to disconected
-        if(charArray.Length == 1)
+        if (charArray.Length == 1)
         {
             ShowArduinoState();
         }
@@ -104,13 +100,13 @@ public class RejectHumanity : MonoBehaviour
                 case Phases.Stomp:
                     HandlePiezo();
                     break;
-            }            
+            }
         }
-        
-        if(debugTouch && charArray.Length == 2)
+
+        if (debugTouch && charArray.Length == 2)
         {
             arduinoStatus.text = (colorStringGreen + "Touch Test");
-            HandleTouch();    
+            HandleTouch();
         }
 
         if (debugMic)
@@ -122,7 +118,7 @@ public class RejectHumanity : MonoBehaviour
         {
             HandlePiezo();
         }
-       
+
         ManageBangParticles();
     }
 
@@ -130,27 +126,27 @@ public class RejectHumanity : MonoBehaviour
     void HandleMic()
     {
         // Check mic is above threshold
-        if(charArray[micOn] == "1")
+        if (charArray[micOn] == "1")
         {
             // Convert char array string to a float
             float volume = float.Parse(charArray[micIndex]);
 
             meterValue += volume * 2.5f;
-        }       
+        }
     }
-
     void HandlePiezo()
     {
-        float hitStrength = float.Parse(charArray[piezoIndex]);      
+        float hitStrength = float.Parse(charArray[piezoIndex]);
 
-        Vector3 leftArea = new Vector3(-5f, Random.Range(-2f, -2.2f), 0);
-        Vector3 rightArea = new Vector3(5f, Random.Range(-2f, -2.2f), 0);
+        Vector3 FXArea = new Vector3(0f, Random.Range(-2f, -2.2f), 0);
 
         if (hitStrength != 0)
         {
             meterValue += hitStrength / 10000;
-            GameObject leftBang = Instantiate(whamFX, leftArea, Quaternion.identity, comicFX.transform);
+            GameObject wham = Instantiate(whamFX, FXArea, Quaternion.identity, comicFX.transform);
+            particles.Add(wham);
         }
+        ManageBangParticles();
     }
 
     // Code used to test functionality of the touch sensors
@@ -163,7 +159,7 @@ public class RejectHumanity : MonoBehaviour
 
             Vector3 leftArea = new Vector3(-5f, Random.Range(3.5f, 3.8f), 0);
             Vector3 rightArea = new Vector3(5f, Random.Range(3.5f, 3.8f), 0);
-            
+
 
             // Left Sensor - Instantiate the particle effect on the left side of the screen
             if (charArray[sideIndex] == "L")
@@ -172,9 +168,11 @@ public class RejectHumanity : MonoBehaviour
                 {
                     meterValue += touchFill;
                     GameObject leftBang = Instantiate(bangFX, leftArea, Quaternion.identity, comicFX.transform);
+                    audioManager.sounds[2].pitch = Random.Range(1.0f, 1.5f);
+                    audioManager.Play("BangSound");
                     particles.Add(leftBang);
-                }                
-                
+                }
+
                 left = true;
             }
             else
@@ -187,9 +185,11 @@ public class RejectHumanity : MonoBehaviour
                 {
                     meterValue += touchFill;
                     GameObject rightBang = Instantiate(bangFX, rightArea, Quaternion.identity, comicFX.transform);
+                    audioManager.sounds[2].pitch = Random.Range(1.0f, 1.5f);
+                    audioManager.Play("BangSound");
                     particles.Add(rightBang);
-                }               
-                
+                }
+
                 right = true;
             }
             else
@@ -200,36 +200,49 @@ public class RejectHumanity : MonoBehaviour
     void MonkeyMeter()
     {
         // Set the meter state based on the value of the monkey meter
-        // 0 - 0.3 = Bang State
-        // 0.3 - 0.6 = Scream State
-        // 0.6 - 1 = Stomp State
-
         // Check the monkey meter valus is not 0
-        if (meterValue != 0) 
+        if (meterValue != 0)
         {
-            if(meterValue > 1.0f / 3.0f)
+
+            // 0.333f - 0.666f = Scream State
+            if (meterValue > 1.0f / 3.0f && meterValue < 0.667f)
             {
                 ScreamPhase();
             }
 
-            if (meterValue > 0.666f)
+            // 0.666f - 1.0f = Stomp State            
+            if (meterValue > 0.666f && meterValue < 1.0f)
             {
                 StompPhase();
             }
 
-            // Drain the meter as lons as it is above the minimum value
-            if(meterValue > minValue)
+            // 1f = Complete State
+            if (meterValue >= 1.0f) 
             {
-                meterValue -= drainRate * Time.deltaTime;
+                barPhase = Phases.Complete;
+                CompletePhase();
+            }
+               
+
+            // Drain the meter as long as it is above the minimum value
+            if (meterValue > minValue)
+            {
+                // .. Or as long as it is not filled
+                if (meterValue <= 1.0f)
+                {
+                    meterValue -= drainRate * Time.deltaTime;
+                }
             }
         }
         else
-            BangPhase();    
+            // 0f - 0.333f = Bang State
+            BangPhase();
     }
 
     float BangPhase()
     {
         barPhase = Phases.Bang;
+        phase1.SetActive(true);
         minValue = 0;
         return minValue;
     }
@@ -237,22 +250,50 @@ public class RejectHumanity : MonoBehaviour
     float ScreamPhase()
     {
         barPhase = Phases.Scream;
+
+        if (GameObject.Find("Phase 1"))
+        {
+            Destroy(phase1);
+        }
+
+        if (!phase2.activeSelf)
+        {
+            phase2.SetActive(true);
+        }       
         minValue = 1.0f / 3.0f;
         return minValue;
     }
 
     float StompPhase()
     {
-        barPhase = Phases.Stomp;
+        barPhase = Phases.Stomp;        
+        
+        if (!phase3.activeSelf)
+        {
+            phase3.SetActive(true);
+        }       
         minValue = 2.0f / 3.0f;
         return minValue;
     }
 
+    float CompletePhase()
+    {
+        Destroy(phase3);
+        minValue = 1;
+        HideMonkeyMeter();
+        return minValue;        
+    }
+
+    public void HideMonkeyMeter()
+    {
+        LeanTween.scale(GameObject.Find("Title"), new Vector3(0, 0, 0), 0.5f).setDelay(0.5f).setOnComplete(() => SceneManager.LoadScene(2));
+        LeanTween.scale(GameObject.Find("Monkey Meter 2.0"), new Vector3(0, 0, 0), 0.5f).setDelay(0.5f).setOnComplete(() => meterValue = 0);
+    }
 
     // Makes sure there are never more than 3 Bang particles being rendered at once
     void ManageBangParticles()
     {
-        if(particles.Count > 3)
+        if (particles.Count > 3)
         {
             Destroy(particles[0]);
             particles.RemoveAt(0);
@@ -283,44 +324,20 @@ public class RejectHumanity : MonoBehaviour
     // Checks if the mic state is active and adjust the fill rate of the humanity bar
     void HandleInput()
     {
-        if(charArray[0] != "0")
+        if (charArray[0] != "0")
         {
-           // sliderBar.value += (fillRate * 1.5f) * multiplier;
+            // sliderBar.value += (fillRate * 1.5f) * multiplier;
         }
 
         else if (charArray[1] != "0")
         {
-           // sliderBar.value += (fillRate * 1.5f) * multiplier;
+            // sliderBar.value += (fillRate * 1.5f) * multiplier;
         }
 
         else if (charArray[2] != "0")
         {
-           // sliderBar.value += fillRate * multiplier;
-        } 
+            // sliderBar.value += fillRate * multiplier;
+        }
     }
 
-    // Changes the color and string of the debug text if the relative sensor is sending input.
-    void DebugText()
-    {
-        // Make the text visible.
-        micState.gameObject.SetActive(true);
-        piezoState.gameObject.SetActive(true);
-        touchState.gameObject.SetActive(true);
-
-        // Set the text color and string
-        if (charArray[0] == "1")
-            micState.text = micString + colorStringGreen + active;
-        else
-            micState.text = micString + colorStringRed + inactive;
-
-        if (charArray[1] == "1")
-            piezoState.text = piezoString + colorStringGreen + active;
-        else
-            piezoState.text = piezoString + colorStringRed + inactive;
-
-        if (charArray[2] == "1")
-            touchState.text = touchString + colorStringGreen + active;
-        else
-            touchState.text = touchString + colorStringRed + inactive;
-    }
 }
