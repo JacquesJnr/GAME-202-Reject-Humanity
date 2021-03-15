@@ -6,12 +6,12 @@
 [![Concept](https://i.gyazo.com/dc2d0b3fa865e40814204319e5380cd7.png)](https://gyazo.com/dc2d0b3fa865e40814204319e5380cd7)
 
 #### **Prototype - Midterm:**
-[![Midterm Main Menu](https://i.gyazo.com/4e4fab429f0452b100edf27bf37da3b2.png](https://gyazo.com/4e4fab429f0452b100edf27bf37da3b2)
-[![Midterm Game Screen](https://i.gyazo.com/f6c811bb9f713da86b50c2f864a35d97.png](https://gyazo.com/f6c811bb9f713da86b50c2f864a35d97)
+[![Midterm Main Menu](https://i.gyazo.com/4e4fab429f0452b100edf27bf37da3b2.png)](https://gyazo.com/4e4fab429f0452b100edf27bf37da3b2)
+[![Midterm Game Screen](https://i.gyazo.com/f6c811bb9f713da86b50c2f864a35d97.png)](https://gyazo.com/f6c811bb9f713da86b50c2f864a35d97)
 
 #### **Refined Prototype - Final:**
-[![Final Main Menu](https://i.gyazo.com/27ca8df353768fe51add2ae8e6d3a331.jpg](https://gyazo.com/27ca8df353768fe51add2ae8e6d3a331)
-[![Final Game Screen](https://i.gyazo.com/0c36e2c3f08860a848aa927aaec1c476.jpg](https://gyazo.com/0c36e2c3f08860a848aa927aaec1c476)
+[![Final Main Menu](https://i.gyazo.com/27ca8df353768fe51add2ae8e6d3a331.jpg )](https://gyazo.com/27ca8df353768fe51add2ae8e6d3a331)
+[![Final Game Screen](https://i.gyazo.com/0c36e2c3f08860a848aa927aaec1c476.jpg)](https://gyazo.com/0c36e2c3f08860a848aa927aaec1c476)
 
 #### **Abstract:**
 
